@@ -1,0 +1,10 @@
+#ifndef SPARROW_CONFIG_H
+#define SPARROW_CONFIG_H
+
+#define LOG_BUFFER_SIZE 512
+
+#define G_MIN_LOG_LEVEL INFO
+
+#define DEFAULT_PORT 8000 
+
+#endif
