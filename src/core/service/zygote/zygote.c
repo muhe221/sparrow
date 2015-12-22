@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 #include "zygote.h"
 #include "runtime.h"
@@ -12,6 +13,25 @@
 #include "config.h"
 #include "start.h"
 #include "properties.h"
+
+
+static void testFork() {
+  pid_t pid = fork();
+  if (pid < 0) {
+    LOG(FATAL) << "failed to start service.";
+  } else if (pid == 0) {
+    const char *arg_ptrs[20 + 1];
+    arg_ptrs[0] = "123456";
+    arg_ptrs[1] = '\0';
+    const char *ENV[10];
+    ENV[0] = "123";
+    ENV[1] = '\0';
+    execve("./signal", (char**) arg_ptrs, (char**) ENV);
+    PLOG(FATAL) << "Application process exit.";
+  }
+
+  LOG(INFO) << "fork process Application pid: " << pid;
+}
 
 void forkSystemServer() {
   LOG(INFO) << "fork system server.";
@@ -51,6 +71,7 @@ void startSystemServer() {
   }
 }
 
+
 void registerZygoteSocket() {
   int socket_fd, connect_fd;
   struct sockaddr_in servaddr;
@@ -74,6 +95,9 @@ void registerZygoteSocket() {
     PLOG(FATAL) << "Listen socket error.";
   }
 
+  // for test
+  testFork();
+
   while (1) {
     LOG(INFO) << "======Wait for client's request======";
 
@@ -95,6 +119,8 @@ void registerZygoteSocket() {
 
   close(socket_fd);
 }
+
+
 
 void PrepareForSpawn() {
   registerZygoteSocket();

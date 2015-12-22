@@ -83,7 +83,8 @@ void Runtime::StartSignalCatcher() {
 }
 
 void Runtime::CrashSigHandler(int signal_number, siginfo_t* info, void* raw_context) {
-    LOG(ERROR) << "crashSigHandler";
+    LOG(ERROR) << "===========crashSigHandler signal:" << signal_number << "==============";
+    LOG(DEBUG) << "thread tid:" << pthread_self();
     sleep(5); // unistd.h
 }
 
