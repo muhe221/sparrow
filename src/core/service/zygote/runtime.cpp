@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 #include "runtime.h"
 #include "macro.h"
@@ -45,13 +46,26 @@ Runtime* Runtime::Current() {
 
 void Runtime::initPlatformSignalHandlers()
 {
+    // create signal stack
+    // In order to avoid overflow of function stack.
+    stack_t ss;
+    ss.ss_sp = mmap(NULL, SIGSTKSZ, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+    if (ss.ss_sp != MAP_FAILED) {
+      ss.ss_size = SIGSTKSZ;
+      ss.ss_flags = 0;
+      int ret = sigaltstack(&ss, NULL);
+      LOG(INFO) << "do sigaltstack successfully.";
+    } else {
+      PLOG(FATAL) << "do mmap altstack MAP_FAILED !";
+    }
+
     struct sigaction action;
 
     memset(&action, 0, sizeof(action));  // string.h
     sigemptyset(&action.sa_mask);
     action.sa_sigaction = CrashSigHandler;
     action.sa_flags |= SA_SIGINFO;
-    action.sa_flags |= SA_ONSTACK; // may be not used;
+    action.sa_flags |= SA_ONSTACK; 
 
     int rc = 0;
     rc += sigaction(SIGABRT, &action, NULL);

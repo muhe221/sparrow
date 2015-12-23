@@ -1,5 +1,5 @@
-TARGET = signal
-OBJECTS = signal.o
+#TARGET = signal
+#OBJECTS = signal.o
 
 DEPEND_LIB = ${PROJECT_PATH}/src/base/log.o
 

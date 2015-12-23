@@ -15,11 +15,59 @@
 #include "properties.h"
 
 
+void *sub_thread(void *) {
+    LOG(DEBUG) << "application sub 1  tid:" << pthread_self();
+
+    sleep(4);
+//    LOG(INFO) << "SUB_THREAD kill--------------------";
+//    kill(getpid(), 11);
+   while (true) {
+     LOG(INFO) << "thread 1 sleep()";
+     sleep(3);
+   }
+}
+
+void *sub_thread2(void *) {
+    LOG(DEBUG) << "application sub 2 tid:" << pthread_self();
+    LOG(INFO) << "SUB_THREAD kill--------------------";
+    kill(getpid(), 11);
+
+   while (true) {
+     LOG(INFO) << "thread 2 sleep()";
+     sleep(3);
+   }
+}
+
+
+static void application() {
+   LOG(INFO) << "to sleep 5 s";
+   LOG(DEBUG) << "application main tid:" << pthread_self();
+   sleep(1);
+   pthread_t pid1;
+   pthread_create(&pid1, NULL, &sub_thread, (void *) NULL);
+
+
+   sleep(1);
+   pthread_t pid2;
+   pthread_create(&pid2, NULL, &sub_thread2, (void *) NULL);
+/*
+  sigset_t set;
+  sigemptyset(&set);
+  sigaddset(&set, SIGSEGV);
+  sigprocmask(SIG_BLOCK, &set, NULL);
+*/
+   while (true) {
+     LOG(INFO) << "application sleep()";
+     sleep(2);
+   }
+}
+
 static void testFork() {
   pid_t pid = fork();
   if (pid < 0) {
     LOG(FATAL) << "failed to start service.";
   } else if (pid == 0) {
+#if 0 
     const char *arg_ptrs[20 + 1];
     arg_ptrs[0] = "123456";
     arg_ptrs[1] = '\0';
@@ -27,6 +75,9 @@ static void testFork() {
     ENV[0] = "123";
     ENV[1] = '\0';
     execve("./signal", (char**) arg_ptrs, (char**) ENV);
+#else
+    application();
+#endif
     PLOG(FATAL) << "Application process exit.";
   }
 
